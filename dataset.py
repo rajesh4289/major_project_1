@@ -1,8 +1,8 @@
 import torch
 import cv2
 import numpy as np
-import torchvision.transforms as transforms
 from torch.utils.data import Dataset
+import torchvision.transforms as transforms
 
 class ImageDataset(Dataset):
     def __init__(self, csv, train, test):
@@ -15,54 +15,41 @@ class ImageDataset(Dataset):
         self.valid_ratio = len(self.csv) - self.train_ratio
 
         # set the training data images and labels
-        if self.train == True:
+        if self.train:
             print(f"Number of training images: {self.train_ratio}")
             self.image_names = list(self.all_image_names[:self.train_ratio])
             self.labels = list(self.all_labels[:self.train_ratio])
 
-            # define the training transforms
-            self.transform = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((400, 400)),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.RandomRotation(degrees=45),
-                transforms.ToTensor(),
-            ])
-
         # set the validation data images and labels
-        elif self.train == False and self.test == False:
+        elif not self.train and not self.test:
             print(f"Number of validation images: {self.valid_ratio}")
             self.image_names = list(self.all_image_names[-self.valid_ratio:-10])
             self.labels = list(self.all_labels[-self.valid_ratio:-10])
 
-            # define the validation transforms
-            self.transform = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((400, 400)),
-                transforms.ToTensor(),
-            ])
-
         # set the test data images and labels, only last 10 images
         # this, we will use in a separate inference script
-        elif self.test == True and self.train == False:
+        elif self.test and not self.train:
             self.image_names = list(self.all_image_names[-10:])
             self.labels = list(self.all_labels[-10:])
-
-             # define the test transforms
-            self.transform = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.ToTensor(),
-            ])
 
     def __len__(self):
         return len(self.image_names)
     
     def __getitem__(self, index):
         image = cv2.imread(f"E:/Major Project/input/Multi_Label_dataset/Images/{self.image_names[index]}.jpg")
-        # convert the image from BGR to RGB color format
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # apply image transforms
-        image = self.transform(image)
+
+        # Apply transformations only during training
+        if self.train:
+            transform = transforms.Compose([
+                transforms.ToPILImage(),
+                transforms.Resize((400, 400)),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomRotation(degrees=45),
+                transforms.ToTensor(),
+            ])
+            image = transform(image)
+        
         targets = self.labels[index]
         
         return {
