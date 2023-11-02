@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Genre Prediction</title>
+</head>
+<body>
+    <h1>Genre Prediction</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label for="image">Upload an Image:</label>
+        <input type="file" name="image" accept="image/*" id="image">
+        <input type="submit" value="Predict">
+    </form>
+
+    {% if predicted_genres %}
+        <h2>Predicted Genres:</h2>
+        <ul>
+            {% for genre in predicted_genres %}
+                <li>{{ genre }}</li>
+            {% endfor %}
+        </ul>
+    {% endif}
+
+</body>
+</html>
